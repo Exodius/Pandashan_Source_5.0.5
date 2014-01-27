@@ -2,17 +2,12 @@
 SQLyog Ultimate v9.02 
 MySQL - 5.5.29-30.0-log : Database - 505_auth
 *********************************************************************
-*/
-
-/*!40101 SET NAMES utf8 */;
-
-/*!40101 SET SQL_MODE=''*/;
+*/
 
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`505_auth` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
 /*Table structure for table `account` */
 
@@ -39,7 +34,7 @@ CREATE TABLE `account` (
   `recruiter` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=154914 DEFAULT CHARSET=utf8 COMMENT='Account System';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Account System';
 
 /*Table structure for table `account_access` */
 
@@ -76,16 +71,46 @@ CREATE TABLE `account_log_ip` (
   `ip` varchar(30) NOT NULL DEFAULT '0.0.0.0',
   `date` datetime DEFAULT NULL,
   PRIMARY KEY (`accountid`,`ip`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `account_premium` */
+
+DROP TABLE IF EXISTS `account_premium`;
+
+CREATE TABLE `account_premium` (
+  `id` int(11) NOT NULL DEFAULT '0' COMMENT 'Account id',
+  `setdate` bigint(40) NOT NULL DEFAULT '0',
+  `unsetdate` bigint(40) NOT NULL DEFAULT '0',
+  `premium_type` tinyint(4) unsigned NOT NULL DEFAULT '1',
+  `gm` varchar(12) NOT NULL DEFAULT '0',
+  `active` tinyint(4) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`,`setdate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
+
+/*Table structure for table `account_spell` */
+
+DROP TABLE IF EXISTS `account_spell`;
+
+CREATE TABLE `account_spell` (
+  `accountId` int(11) NOT NULL,
+  `spell` int(10) NOT NULL,
+  `active` tinyint(1) DEFAULT NULL,
+  `disabled` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`accountId`,`spell`),
+  KEY `account` (`accountId`) USING HASH,
+  KEY `account_spell` (`accountId`,`spell`) USING HASH
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `firewall_farms` */
 
 DROP TABLE IF EXISTS `firewall_farms`;
 
 CREATE TABLE `firewall_farms` (
-  `ip` tinytext NOT NULL,
+  `ip` varchar(30) NOT NULL DEFAULT '',
   `type` tinyint(1) unsigned NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `firewall_farms` VALUES ('127.0.0.1', 0);
 
 /*Table structure for table `ip_banned` */
 
@@ -100,16 +125,57 @@ CREATE TABLE `ip_banned` (
   PRIMARY KEY (`ip`,`bandate`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Banned IPs';
 
-/*Table structure for table `log_vote` */
+--
+-- Table structure for table `ip2nation`
+--
 
-DROP TABLE IF EXISTS `log_vote`;
+DROP TABLE IF EXISTS `ip2nation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ip2nation` (
+  `ip` int(11) unsigned NOT NULL DEFAULT '0',
+  `country` char(2) NOT NULL DEFAULT '',
+  KEY `ip` (`ip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE TABLE `log_vote` (
-  `top_name` varchar(15) NOT NULL DEFAULT 'top',
-  `ip` varchar(15) NOT NULL DEFAULT '0.0.0.0',
-  `date` int(11) NOT NULL,
-  PRIMARY KEY (`top_name`,`ip`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+--
+-- Dumping data for table `ip2nation`
+--
+
+LOCK TABLES `ip2nation` WRITE;
+/*!40000 ALTER TABLE `ip2nation` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ip2nation` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ip2nationCountries`
+--
+
+DROP TABLE IF EXISTS `ip2nationCountries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ip2nationCountries` (
+  `code` varchar(4) NOT NULL DEFAULT '',
+  `iso_code_2` varchar(2) NOT NULL DEFAULT '',
+  `iso_code_3` varchar(3) DEFAULT '',
+  `iso_country` varchar(255) NOT NULL DEFAULT '',
+  `country` varchar(255) NOT NULL DEFAULT '',
+  `lat` float NOT NULL DEFAULT '0',
+  `lon` float NOT NULL DEFAULT '0',
+  PRIMARY KEY (`code`),
+  KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ip2nationCountries`
+--
+
+LOCK TABLES `ip2nationCountries` WRITE;
+/*!40000 ALTER TABLE `ip2nationCountries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ip2nationCountries` ENABLE KEYS */;
+UNLOCK TABLES;
 
 /*Table structure for table `logs` */
 
@@ -120,7 +186,7 @@ CREATE TABLE `logs` (
   `realm` int(10) unsigned NOT NULL,
   `type` tinyint(3) unsigned NOT NULL,
   `level` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `string` text CHARACTER SET latin1
+  `string` text CHARACTER SET utf8
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `realmcharacters` */
@@ -149,10 +215,13 @@ CREATE TABLE `realmlist` (
   `timezone` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `allowedSecurityLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `population` float unsigned NOT NULL DEFAULT '0',
+  `online` int(11) NOT NULL DEFAULT '0',
   `gamebuild` int(10) unsigned NOT NULL DEFAULT '16135',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Realm System';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Realm System';
+
+INSERT INTO `realmlist` VALUES (1, 'Test', '127.0.0.1', 8085, 0, 2, 0, 0, 0, 0, 16135);
 
 /*Table structure for table `transferts` */
 
@@ -168,8 +237,10 @@ CREATE TABLE `transferts` (
   `dump` longtext NOT NULL,
   `last_error` blob NOT NULL,
   `nb_attempt` int(11) NOT NULL,
+  `state` int(11) NOT NULL,
+  `error` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2305 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `transferts_logs` */
 
@@ -182,7 +253,7 @@ CREATE TABLE `transferts_logs` (
   `from` int(2) DEFAULT NULL,
   `to` int(2) DEFAULT NULL,
   `dump` longtext
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `uptime` */
 
@@ -193,7 +264,7 @@ CREATE TABLE `uptime` (
   `starttime` int(10) unsigned NOT NULL DEFAULT '0',
   `uptime` int(10) unsigned NOT NULL DEFAULT '0',
   `maxplayers` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `revision` varchar(255) NOT NULL DEFAULT 'Trinitycore',
+  `revision` varchar(255) NOT NULL DEFAULT 'Jadecore',
   PRIMARY KEY (`realmid`,`starttime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Uptime system';
 
